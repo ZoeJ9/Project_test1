@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cool Data Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chart-container {
+            display: flex;
+            align-items: end;
+            height: 300px;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .bar {
+            background: linear-gradient(to top, #ff6b6b, #4ecdc4);
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .bar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .bar:hover .bar-value {
+            opacity: 1;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 10px;
+            transition: transform 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            color: white;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            min-width: 100px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Interactive Data Visualization</h1>
+        
+        <div class="chart-container" id="chart">
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="maxValue">0</div>
+                <div>Maximum</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="avgValue">0</div>
+                <div>Average</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalValue">0</div>
+                <div>Total</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="generateNewData()">🎲 New Data</button>
+            <button onclick="animateBars()">✨ Animate</button>
+            <button onclick="sortBars()">📊 Sort</button>
+        </div>
+    </div>
+
+    <script>
+        let currentData = [];
+        const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
+        const colors = [
+            'linear-gradient(to top, #ff6b6b, #4ecdc4)',
+            'linear-gradient(to top, #a8e6cf, #dcedc1)',
+            'linear-gradient(to top, #ffd93d, #ff6b6b)',
+            'linear-gradient(to top, #6c5ce7, #a29bfe)',
+            'linear-gradient(to top, #fd79a8, #fdcb6e)',
+            'linear-gradient(to top, #00b894, #00cec9)',
+            'linear-gradient(to top, #e17055, #fdcb6e)',
+            'linear-gradient(to top, #74b9ff, #0984e3)'
+        ];
+
+        function generateRandomData() {
+            return labels.map(() => Math.floor(Math.random() * 100) + 10);
+        }
+
+        function createChart(data) {
+            const chart = document.getElementById('chart');
+            chart.innerHTML = '';
+            currentData = data;
+            
+            const maxValue = Math.max(...data);
+            
+            data.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.width = '60px';
+                bar.style.height = `${(value / maxValue) * 250}px`;
+                bar.style.background = colors[index % colors.length];
+                
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = labels[index];
+                
+                const valueLabel = document.createElement('div');
+                valueLabel.className = 'bar-value';
+                valueLabel.textContent = value;
+                
+                bar.appendChild(label);
+                bar.appendChild(valueLabel);
+                
+                bar.addEventListener('click', () => {
+                    bar.style.transform = 'scale(1.2) rotate(5deg)';
+                    setTimeout(() => {
+                        bar.style.transform = '';
+                    }, 200);
+                });
+                
+                chart.appendChild(bar);
+            });
+            
+            updateStats(data);
+        }
+
+        function updateStats(data) {
+            const max = Math.max(...data);
+            const avg = Math.round(data.reduce((a, b) => a + b, 0) / data.length);
+            const total = data.reduce((a, b) => a + b, 0);
+            
+            document.getElementById('maxValue').textContent = max;
+            document.getElementById('avgValue').textContent = avg;
+            document.getElementById('totalValue').textContent = total;
+        }
+
+        function generateNewData() {
+            const newData = generateRandomData();
+            createChart(newData);
+        }
+
+        function animateBars() {
+            const bars = document.querySelectorAll('.bar');
+            bars.forEach((bar, index) => {
+                setTimeout(() => {
+                    bar.style.transform = 'scale(1.1)';
+                    bar.style.boxShadow = '0 8px 25px rgba(255, 107, 107, 0.5)';
+                    setTimeout(() => {
+                        bar.style.transform = '';
+                        bar.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
+                    }, 300);
+                }, index * 100);
+            });
+        }
+
+        function sortBars() {
+            const sortedData = [...currentData].sort((a, b) => b - a);
+            createChart(sortedData);
+        }
+
+        // Initialize with random data
+        generateNewData();
+
+        // Add some sparkle animation
+        setInterval(() => {
+            const bars = document.querySelectorAll('.bar');
+            const randomBar = bars[Math.floor(Math.random() * bars.length)];
+            if (randomBar) {
+                randomBar.style.filter = 'brightness(1.2)';
+                setTimeout(() => {
+                    randomBar.style.filter = '';
+                }, 500);
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
